@@ -28,16 +28,26 @@ def download_clip(url):
     clip_id = url.split('_')[-1]
     clip_api_url = f"https://kick.com/api/v2/clips/clip_{clip_id}"
     response = validate_response(requests.get(clip_api_url, headers=headers))
+
     video_url = response['clip']['video_url']
+    if '.mp4' in video_url:
+        return clip_id, video_url
     video_partitions = requests.get(video_url)
+
+    # Create a folder with the output_filename inside the 'clips' folder
+    output_dir = os.path.join('clips', clip_id)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    partitions_path = os.path.join(output_dir, f"{clip_id}.txt")
+
     partitions = []
     if video_partitions.status_code != 200:
         raise Exception('Error retrieving video partitions')
     else:
          # Write content to the file (assuming response.content is the data)
-        with open(f"{clip_id}.txt", 'wb') as file:
+        with open(partitions_path, 'wb') as file:
             file.write(video_partitions.content)
-        with open(f"{clip_id}.txt" , 'rt') as file:
+        with open(partitions_path , 'rt') as file:
             for line in file:
                 # Remove trailing newline character
                 line = line.rstrip()
@@ -49,18 +59,10 @@ def download_clip(url):
                     partitions.append(line)
     clip_prefix = response['clip']['thumbnail_url'].split('thumbnail.png')[0]
     clip_links = [f"{clip_prefix}{partition}" for partition in partitions]
-    clip_filepath = download_and_assemble(clip_links, clip_id)
+    clip_filepath = download_and_assemble(clip_links, output_dir, clip_id)
     return clip_id, clip_filepath
          
-def download_and_assemble(urls, output_filename):
-    # Create the 'clips' folder if it doesn't exist
-    if not os.path.exists('clips'):
-        os.makedirs('clips')
-    
-    # Create a folder with the output_filename inside the 'clips' folder
-    output_dir = os.path.join('clips', output_filename)
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+def download_and_assemble(urls, output_dir, output_filename):
     
     output_file = os.path.join(output_dir, f"{output_filename}.ts")
     
@@ -78,9 +80,9 @@ def download_and_assemble(urls, output_filename):
     print(f"All segments assembled into: {output_file}")
 
     # Convert the concatenated .ts file to .mp4
-    output_file = os.path.join(output_dir, f"{output_filename}.mp4")
-    command = ['ffmpeg', '-i', output_file, '-c', 'copy', output_file]
-    subprocess.run(command)
-    return output_file
+    output_mp4 = os.path.join(output_dir, f"{output_filename}.mp4")
+    command = ['ffmpeg', '-i', output_file, '-c', 'copy', output_mp4]
+    subprocess.run(command, text=False, capture_output=False)
+    return output_mp4
 
 
