@@ -18,7 +18,7 @@ load_dotenv('credentials.env')
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 #UPLOAD_AUTHORITY = os.getenv('UPLOAD_AUTHORITY') # This user will upload the clip to Discord's servers
 
-def extract_kick_clip_link(message_content):
+async def extract_kick_clip_link(message_content):
     # Define the regular expression pattern to match the link
     pattern = r'https://kick\.com/[^\s?]+\?clip=clip_[A-Za-z0-9]+'
     
@@ -33,7 +33,7 @@ def extract_kick_clip_link(message_content):
 
 cache = {}
 
-def cache_video_link(clip_url, video_link, action='Update'):
+async def cache_video_link(clip_url, video_link, action='Update'):
     global cache
 
     if action == 'Update':
@@ -57,19 +57,23 @@ async def on_ready():
 async def handle_message(message):
     if "?clip=clip_" in message.content and "kick.com" in message.content:
         print('link detected')
-        clip_link = extract_kick_clip_link(message.content)
+        clip_link = await extract_kick_clip_link(message.content)
         if clip_link in list(cache.keys()): # Check if the link is in the cache
             await message.channel.send(cache[clip_link])
 
         elif clip_link is not None: # If the link is not in the cache, download the clip
-            clip_id, filename = videoUtils.download_clip(clip_link)
+            clip_id, filename = await videoUtils.download_clip(clip_link)
             if 'kick.com' in filename:
                 await message.channel.send(filename)
-                cache_video_link(clip_link, filename)
+                await cache_video_link(clip_link, filename)
+                return
+            elif filename == 'cached':
+                await message.channel.send(cache[clip_link])
+                return
             else:
                 sent_video = await message.channel.send(file=discord.File(filename))
                 file_url = sent_video.attachments[0].url
-                cache_video_link(clip_link, file_url)
+                await cache_video_link(clip_link, file_url)
                 folder_path_to_delete = os.path.join("clips", clip_id)
                 shutil.rmtree(folder_path_to_delete)
         return
