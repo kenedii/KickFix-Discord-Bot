@@ -16,7 +16,6 @@ import shutil
 load_dotenv('credentials.env')
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
-#UPLOAD_AUTHORITY = os.getenv('UPLOAD_AUTHORITY') # This user will upload the clip to Discord's servers
 
 async def extract_kick_clip_link(message_content):
     # Define the regular expression pattern to match the link
@@ -57,30 +56,30 @@ async def on_ready():
 async def handle_message(message):
     if "?clip=clip_" in message.content and "kick.com" in message.content:
         print('link detected')
-        clip_link = await extract_kick_clip_link(message.content)
+        clip_link = await extract_kick_clip_link(message.content) # Extract the clip link from the message content
         if clip_link in list(cache.keys()): # Check if the link is in the cache
             await message.channel.send(cache[clip_link])
 
         elif clip_link is not None: # If the link is not in the cache, download the clip
-            clip_id, filename = await videoUtils.download_clip(clip_link)
-            if 'kick.com' in filename:
-                await message.channel.send(filename)
+            clip_id, filename = await videoUtils.download_clip(clip_link) 
+            if 'kick.com' in filename: # If the filename is a link to the video
+                await message.channel.send(filename) # Send the video link
                 await cache_video_link(clip_link, filename)
                 return
-            elif filename == 'cached':
-                await message.channel.send(cache[clip_link])
+            elif filename == 'cached': # If the video is cached
+                await message.channel.send(cache[clip_link]) # Send the cached video link
                 return
             else:
-                sent_video = await message.channel.send(file=discord.File(filename))
-                file_url = sent_video.attachments[0].url
-                await cache_video_link(clip_link, file_url)
-                folder_path_to_delete = os.path.join("clips", clip_id)
-                shutil.rmtree(folder_path_to_delete)
+                sent_video = await message.channel.send(file=discord.File(filename)) # Send the video file
+                file_url = sent_video.attachments[0].url                             # Get the video URL
+                await cache_video_link(clip_link, file_url)                          # Cache the video URL
+                folder_path_to_delete = os.path.join("clips", clip_id)               
+                shutil.rmtree(folder_path_to_delete)                                 # Delete the folder containing the video
         return
     
 @client.event
 async def on_message(message):
     await handle_message(message)
 
-cache_video_link(None, None, action='Load')
+cache_video_link(None, None, action='Load') # Load the cached video links upon starting the bot
 client.run(BOT_TOKEN)
