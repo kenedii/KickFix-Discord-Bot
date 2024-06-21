@@ -1,6 +1,7 @@
 import requests
 import os
 import subprocess
+import aiohttp
 import asyncio
 
 headers = {
@@ -70,37 +71,33 @@ async def download_clip(url):
     clip_filepath = await download_and_assemble(clip_links, output_dir, clip_id) # Download, assemble, and compress the clip
     return clip_id, clip_filepath
 
-async def download_and_assemble(urls, output_dir, output_filename):
-    output_file = os.path.join(output_dir, f"{output_filename}.ts")
 
-    with open(output_file, 'wb') as outfile:
+
+
+
+async def download_and_assemble(urls, output_dir, output_filename):
+    # Download all segments and concatenate to a single .ts file
+    concatenated_ts = os.path.join(output_dir, f"{output_filename}_concatenated.ts")
+
+    with open(concatenated_ts, 'wb') as outfile:
         for url in urls:
-            response = requests.get(url, stream=True) # Download the video segment
+            response = requests.get(url, stream=True)  # Download the video segment
             if response.status_code == 200:
-                for chunk in response.iter_content(chunk_size=1024):
-                    if chunk:
-                        outfile.write(chunk) # Write the video segment to the output file
+                outfile.write(response.content)  # Write the video segment to the output file
                 print(f"Appended: {url}")
             else:
                 print(f"Failed to download: {url}")
 
-    print(f"All segments assembled into: {output_file}")
+    print(f"All segments assembled into: {concatenated_ts}")
 
-    # Convert the concatenated .ts file to .mp4
+    # Compress the .ts video and convert to .mp4 in a single command
     output_mp4 = os.path.join(output_dir, f"{output_filename}.mp4")
-    command = ['ffmpeg', '-i', output_file, '-c', 'copy', output_mp4]
-    subprocess.run(command, text=False, capture_output=False)
-    
-    # Compress the mp4 video
-    compressed_mp4 = os.path.join(output_dir, f"{output_filename}_compressed.mp4")
     compression_command = [
-        'ffmpeg', '-i', output_mp4, '-vf', 'scale=-1:720', '-c:v', 'h264_nvenc',
-        '-rc', 'constqp', '-qp', '30', '-profile:v', 'high', '-preset', 'llhp', 
-        '-b:v', '1M', '-max_muxing_queue_size', '2048', 
-        '-c:a', 'aac', '-b:a', '128k', compressed_mp4
-    ]
-    subprocess.run(compression_command, text=False, capture_output=False)
-    
-    os.remove(output_mp4)  # Remove the original large file
-    return compressed_mp4
-    
+    'ffmpeg', '-i', concatenated_ts, '-vf', 'scale=854:480', '-c:v', 'h264_nvenc',
+    '-rc', 'vbr_hq', '-cq:v', '25', '-qmin:v', '20', '-qmax:v', '30', '-profile:v', 'high', '-preset', 'llhp',
+    '-b:v', '700k', '-max_muxing_queue_size', '9999',
+    '-c:a', 'aac', '-b:a', '64k', '-movflags', '+faststart', output_mp4
+]
+    subprocess.run(compression_command)
+
+    return output_mp4
