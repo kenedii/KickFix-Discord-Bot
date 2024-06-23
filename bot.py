@@ -59,21 +59,24 @@ async def on_ready():
 async def handle_message(message):
     if "?clip=clip_" in message.content and "kick.com" in message.content:
         print('link detected')
+        processing_message = await message.channel.send("Processing clip . . .")
         clip_link = await extract_kick_clip_link(message.content) # Extract the clip link from the message content
+        if clip_link == None:
+            return
         if clip_link in list(cache.keys()): # Check if the link is in the cache
-            await message.channel.send(cache[clip_link])
+            await processing_message.edit(content=cache[clip_link])
 
         elif clip_link is not None: # If the link is not in the cache, download the clip
             clip_id, filename = await videoUtils.download_clip(clip_link) 
             if 'kick.com' in filename: # If the filename is a link to the video
-                await message.channel.send(filename) # Send the video link
+                await processing_message.edit(content=filename) # Send the video link
                 await cache_video_link(clip_link, filename)
                 return
             elif filename == 'cached': # If the video is cached
-                await message.channel.send(cache[clip_link]) # Send the cached video link
+                await processing_message.edit(content=cache[clip_link]) # Send the cached video link
                 return
             else:
-                sent_video = await message.channel.send(file=discord.File(filename)) # Send the video file
+                sent_video = await processing_message.edit(content="", attachments = [discord.File(filename)]) # Send the video file
                 file_url = sent_video.attachments[0].url                             # Get the video URL
                 await cache_video_link(clip_link, file_url)                          # Cache the video URL
                 folder_path_to_delete = os.path.join("clips", clip_id)               
@@ -87,6 +90,9 @@ async def embed_clip(interaction:discord.Interaction, clip:str):
         return
     else:
         await interaction.response.send_message("Processing clip . . .")
+        if clip in list(cache.keys()): # Check if the link is in the cache
+            await interaction.edit_original_response(content=cache[clip])
+            return
         clip_id, filename = await videoUtils.download_clip(clip) 
         if 'kick.com' in filename: # If the filename is a link to the video
             await interaction.edit_original_response(content=filename) # Send the video link

@@ -72,7 +72,6 @@ async def download_clip(url):
     return clip_id, clip_filepath
 
 
-
 async def download_and_assemble(urls, output_dir, output_filename):
     # Download all segments and concatenate to a single .ts file
     concatenated_ts = os.path.join(output_dir, f"{output_filename}_concatenated.ts")
