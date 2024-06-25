@@ -1,5 +1,6 @@
 # KickFix-Discord-Bot
-Post a kick clip link and the bot will upload the clip video to the chat.
+
+Post a kick.com clip link and the bot will upload the clip video to the chat.
 
 Tries to upload videos as fast as possible.
 
@@ -7,6 +8,21 @@ Tries to upload videos as fast as possible.
 
 -Otherwise, it will need to download all the .ts segments the clip is composed of, combine them, and convert to mp4 before uploading. (takes some time)
 
--Longer clips need to get automatically compressed before they can be uploaded.
+-Clips get automatically compressed before they are uploaded.
 
 -After the clip has been served once, the video link will be cached so it can be served faster the next time.
+
+### Dependencies
+
+* Python
+  
+* pip install discord
+  
+* pip install python-dotenv
+
+*The versions used for this project are: Python 3.11.5, discord 2.3.2, python-dotenv 1.0.1*
+
+### Executing program
+
+- Create a text file 'credentials.env' and write ```BOT_TOKEN = "INSERT_TOKEN_HERE"``` inside
+- Run bot.py
