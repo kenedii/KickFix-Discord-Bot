@@ -66,7 +66,7 @@ async def download_clip(url):
                 # Add unique line to the array
                 if line not in partitions:
                     partitions.append(line) # Append the partition to the list
-    clip_prefix = response['clip']['thumbnail_url'].split('thumbnail.png')[0] # Extract the clip prefix
+    clip_prefix = response['clip']['clip_url'].split('playlist.m3u8')[0] # Extract the clip prefix
     clip_links = [f"{clip_prefix}{partition}" for partition in partitions]    # Assemble the clip links
     clip_filepath = await download_and_assemble(clip_links, output_dir, clip_id) # Download, assemble, and compress the clip
     return clip_id, clip_filepath
