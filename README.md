@@ -2,6 +2,9 @@
 
 Post a kick.com clip link and the bot will upload the clip video to the chat.
 
+Invite this bot to your server:
+# https://discord.com/oauth2/authorize?client_id=1253549903091728384&permissions=116736&scope=bot 
+
 Tries to upload videos as fast as possible.
 
 -If a .mp4 of the entire clip can be fetched from Kick, it will just send the link to that mp4. (Nearly instantaneous)
