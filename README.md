@@ -23,7 +23,9 @@ Tries to upload videos as fast as possible.
   
 * pip install python-dotenv
 
-*The versions used for this project are: Python 3.11.5, discord 2.3.2, python-dotenv 1.0.1*
+* FFMPEG
+
+*The versions used for this project are: Python 3.11.5, discord 2.3.2, python-dotenv 1.0.1, ffmpeg 4.2.2*
 
 ### Executing program
 
