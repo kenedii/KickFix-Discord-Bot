@@ -113,5 +113,5 @@ async def embed_clip(interaction:discord.Interaction, clip:str):
 async def on_message(message):
     await handle_message(message)
 
-await cache_video_link(None, None, action='Load') # Load the cached video links upon starting the bot
+cache_video_link(None, None, action='Load') # Load the cached video links upon starting the bot
 client.run(BOT_TOKEN)
