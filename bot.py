@@ -86,7 +86,7 @@ async def handle_message(message):
 
 @tree.command(name="embed",description="Embed a kick link in chat.")
 async def embed_clip(interaction:discord.Interaction, clip:str):
-    if "kick.com" not in clip and "?clip=clip_" not in clip:
+    if "kick.com" not in clip or "clip_" not in clip:
         await interaction.response.send_message("Please enter a valid kick clip.",ephemeral=True)
         return
     else:
