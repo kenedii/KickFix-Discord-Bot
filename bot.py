@@ -18,20 +18,21 @@ load_dotenv('credentials.env')
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 
+cache = {}
+
 async def extract_kick_clip_link(message_content):
-    # Define the regular expression pattern to match the link
-    pattern = r'https://kick\.com/[^\s?]+\?clip=clip_[A-Za-z0-9]+'
-    
+    # Define the regular expression pattern to match both link formats
+    pattern = r'https://kick\.com/[^\s?]+(\?clip=clip_[A-Za-z0-9]+|/clips/clip_[A-Za-z0-9]+)'
+
     # Search for the pattern in the message content
     match = re.search(pattern, message_content)
-    
-    # If a match is found, return the matched link, else return None
-    if match:
-        print(match.group(0))
-        return match.group(0)
-    return None
 
-cache = {}
+    # If a match is found, return the matched link
+    if match:
+        clip_link = match.group(0)
+        print(clip_link)
+        return clip_link
+    return None
 
 async def cache_video_link(clip_url, video_link, action='Update'):
     global cache
@@ -57,7 +58,7 @@ async def on_ready():
     await client.change_presence(status=discord.Status.online, activity=activity)
 
 async def handle_message(message):
-    if "?clip=clip_" in message.content and "kick.com" in message.content:
+    if ("?clip=clip_" in message.content and "kick.com" in message.content) or ("/clips/clip_" in message.content and "kick.com" in message.content):
         print('link detected')
         processing_message = await message.channel.send("Processing clip . . .")
         clip_link = await extract_kick_clip_link(message.content) # Extract the clip link from the message content
