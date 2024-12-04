@@ -4,7 +4,7 @@ Post a kick.com clip link and the bot will upload the clip video to the chat.
 
 Invite this bot to your server:
 # https://discord.com/oauth2/authorize?client_id=1253549903091728384&permissions=116736&scope=bot 
-**Bot offline. Kick's Cloudflare is blocking the requests**
+**Bot offline. Kick's Cloudflare is blocking the requests 2024-12-03**
 
 Tries to upload videos as fast as possible.
 
